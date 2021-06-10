@@ -1,0 +1,31 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+.btn {
+    @apply p-2 text-white transition duration-500 ease-in-out rounded-lg focus:outline-none;
+}
+
+.btn--purple {
+    @apply bg-purple-500 hover:bg-purple-800;
+}
+
+.btn--green {
+    @apply bg-green-500 hover:bg-green-700;
+}
+
+.btn--red {
+    @apply bg-red-500 hover:bg-red-700;
+}
+
+.cont {
+    @apply mx-5 xl:mx-auto xl:max-w-6xl my-5 border-gray-400 border-dashed rounded-md border-2 p-3;
+}
+
+.form-input {
+    @apply block mx-auto w-full rounded-md border-solid border-gray-400 border-2 focus:border-green-400 focus:outline-none transition duration-500 ease-in-out p-1 pl-3 my-2 max-w-md;
+}
+
+.trnstn {
+    @apply transition ease-in-out duration-200;
+}
