@@ -3,6 +3,7 @@ const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = {
   entry: './src/index.js',
@@ -34,6 +35,12 @@ module.exports = {
     }),
 
     new MiniCssExtractPlugin(),
+
+    new CopyPlugin({
+      patterns: [
+        { from: "./src/assets", to: "./dist/assets" },
+      ],
+    }),
   ],
 
   optimization: {

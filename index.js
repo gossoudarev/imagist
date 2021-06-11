@@ -28,6 +28,11 @@ io.on('connection', ws => {
     console.log('Path: '+imagePath);
     path = imagePath;
   });
+  
+  ws.on('path', imagePath => {
+    console.log('Path: '+imagePath);
+    path = imagePath;
+  });
 
   ws.on('disconnect', () => {
     console.log('Connection lost!');

@@ -1,12 +1,13 @@
 import "./socket.io";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useState } from "react";
 
 export function App() {
   const [loading, setLoading] = useState(false);
   const [imgPath, setImgPath] = useState('');
   const [connected, setConnected] = useState(false);
-  
-  const submitHandler = useCallback(async (event) => {
+  let ws;
+
+  async function submitHandler(event) {
     setLoading(true);
     event.preventDefault();
     const imageData = new FormData();
@@ -18,10 +19,15 @@ export function App() {
     const { path } = await response.json();
     setLoading(false);
     setImgPath(path);
-    const ws = io();
-    ws.emit('path', path);
+    initConnection();
+  };
+
+  function initConnection() {
+    ws = io();
+    ws.emit('path', imgPath);
     setConnected(true);
-  }, []);
+    ws.on('path', path => setImgPath(path));
+  }
 
   return (
     <React.Fragment>
@@ -39,7 +45,14 @@ export function App() {
           {loading ? "Downloading..." : "Download"}
         </button>
       </form>
-      <img src={imgPath} />
+      <div className={connected ? "" : "hidden"}>
+        <img src={imgPath} className="sm:w-1/2 w-full" />
+        <button onClick={() => ws.emit('flip')}>
+          <svg>
+            <use href="./assets/flip.svg" />
+          </svg>
+        </button>
+      </div>
     </React.Fragment>
   );
 }
