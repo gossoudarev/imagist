@@ -26,30 +26,75 @@ app.post("/api/upload", upload.single('image'), (req, res) => {
   res.send({ path: req.file.path });
 });
 
+app.get("/api/download/", (req, res) => {
+  if (fs.existsSync(req.query.path)) {
+    fs.createReadStream(req.query.path).pipe(res);
+  } else {
+    res.status(404).end();
+  }
+});
+
 const server = http(app).listen(process.env.PORT || PORT, () => console.log('Server starts: ' + process.pid));
 const io = socketIO(server);
 
 io.on('connection', ws => {
-  console.log('Connected!');
   let source;
   let modified;
 
   ws.on('path', imagePath => {
-    console.log('Path: ' + imagePath);
     source = imagePath;
   });
 
-  ws.on('flip', async () => {
-    console.log('flip');
+  ws.on('transform', async (data) => {
     Jimp.read(source)
       .then(pic => {
         if (modified) {
           fs.rmSync(modified);
         }
         modified = 'images\\' + Date.now() + '-' + source.split('-')[1];
-        return pic
-          .flip(true, false)
-          .write(modified);
+        if (data.colors) {
+          switch (data.colors) {
+            case 'invert':
+              pic.invert();
+            case 'greyscale':
+              pic.greyscale();
+            case 'sepia':
+              pic.sepia();
+          }
+        }
+        if (data.brightness) {
+          pic.brightness(data.brightness);
+        }
+        if (data.contrast) {
+          pic.contrast(data.contrast);
+        }
+        if (data.blur) {
+          pic.blur(data.blur);
+        }
+        if (data.posterize) {
+          pic.posterize(data.posterize);
+        }
+        if (data.pixelate) {
+          pic.pixelate(data.pixelate);
+        }
+        if (data.flip_v || data.flip_h) {
+          pic.flip(data.flip_h, data.flip_v);
+        }
+        if (data.rotate) {
+          pic.rotate(data.rotate);
+        }
+        if (data.bg !== 255) {
+          pic.background(data.bg);
+        }
+        if (data.resize_y || data.resize_x) {
+          if (data.resize_y && data.resize_x) {
+            pic.resize(data.resize_x, data.resize_y);
+          } else {
+            pic.resize(data.resize_x || Jimp.AUTO, data.resize_y || Jimp.AUTO);
+          }
+        }
+        pic.write(modified);
+        return pic;
       })
       .catch(err => {
         console.error(err);
@@ -59,13 +104,17 @@ io.on('connection', ws => {
       });
   });
 
-  ws.on('disconnect', () => {
-    console.log('Connection lost!');
+  ws.on('clear', clear);
+  ws.on('disconnect', clear);
+
+  function clear() {
     if (source) {
       fs.rmSync(source);
+      source = null;
     }
     if (modified) {
       fs.rmSync(modified);
+      modified = null;
     }
-  });
+  }
 });
