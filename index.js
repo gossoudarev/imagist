@@ -6,7 +6,7 @@ const multer = require('multer');
 const socketIO = require('socket.io');
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, './images')
+    cb(null, path.join(__dirname, './images'))
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + '-' + file.originalname)
