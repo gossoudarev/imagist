@@ -51,7 +51,7 @@ io.on('connection', ws => {
         if (modified) {
           fs.rmSync(modified);
         }
-        modified = 'images\\' + Date.now() + '-' + source.split('-')[1];
+        modified = './images/' + Date.now() + '-' + source.split('-')[1];
         if (data.colors) {
           switch (data.colors) {
             case 'invert':

@@ -91,7 +91,7 @@ export function App(props) {
           Choose file
           <input type="file" name="image" accept="image/*" className="hidden" />
         </label>
-        <button className="btn btn--red" type="submit">
+        <button className="btn btn--red" type="submit" disabled={loading}>
           {loading ? "Uploading..." : "Upload"}
         </button>
       </form>
