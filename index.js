@@ -23,7 +23,7 @@ app.get(/(\/)|(\.(js|css)$)/, express.static(path.join(__dirname, './dist')));
 app.use('/images', express.static(path.join(__dirname, './images')));
 
 app.post("/api/upload", upload.single('image'), (req, res) => {
-  res.send({ path: req?.file.path });
+  res.send({ path: req.file.path });
 });
 
 app.get("/api/download/", (req, res) => {
