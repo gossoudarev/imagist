@@ -3,8 +3,7 @@ import React, { useState } from "react";
 
 export function App(props) {
   const [loading, setLoading] = useState(false);
-  const [imgPath, setImgPath] = useState("");
-  const [name, setName] = useState(false);
+  const [filename, setFilename] = useState(false);
   const [inURL, setInURL] = useState(false);
   const [outURL, setOutURL] = useState(false);
   const max_file_size = 15 * 1024 * 1024;
@@ -12,8 +11,7 @@ export function App(props) {
   async function submitHandlerUpload(event) {
     event.preventDefault();
     const file = event.target.elements.image.files[0];
-    console.log(file);
-    setName(file.name);
+    setFilename(file.name);
     if (!file) return;
     if (file.size >= max_file_size) {
       alert('Too large file!');
@@ -36,8 +34,7 @@ export function App(props) {
       });
       response = await response.json();
       if (response.success) {
-        setInURL(response.inURL);
-        setImgPath(inURL);
+        setInURL(reader.result);
       } else {
         alert(response.error);
       }
@@ -64,7 +61,7 @@ export function App(props) {
     } = event.target.elements;
     const request = {
       operation: 'transform',
-      name,
+      name: filename,
       colors: colors.value,
       flip_h: flip_h.checked,
       flip_v: flip_v.checked,
@@ -78,6 +75,7 @@ export function App(props) {
       posterize: parseInt(posterize.value),
       pixelate: parseInt(pixelate.value)
     };
+    console.log(request);
 
     let response = await fetch('https://ewo3spohhk.execute-api.us-east-2.amazonaws.com/default/Imagist', {
       method: 'POST',
@@ -85,9 +83,8 @@ export function App(props) {
     });
 
     response = await response.json();
-    if (response.sucsess) {
+    if (response.success) {
       setOutURL(response.outURL);
-      setImgPath(outURL);
     } else {
       alert(response.error);
     }
@@ -96,10 +93,9 @@ export function App(props) {
 
   async function downloadHandler(event) {
     event.preventDefault();
-    const response = await fetch(`api/download/?path=${imgPath}`);
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(await response.blob());
-    a.download = imgPath.split('-')[1];
+    a.href = outURL;
+    a.download = 'modified-' + filename;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -107,18 +103,19 @@ export function App(props) {
 
   function clearHandler(event) {
     event.preventDefault();
-    setImgPath("");
+    setOutURL(false);
+    setInURL(false);
   }
 
   return (
     <React.Fragment>
       <form
         onSubmit={submitHandlerUpload}
-        className={imgPath ? "hidden" : "text-center bg-blue-100"}
+        className={inURL ? "hidden" : "text-center bg-blue-100"}
       >
         <h1 className="text-2xl sm:text-5xl mt-5">Wellcome to Imagist!</h1>
         <h2 className="text-lg sm:text-3xl my-2">Let's manipulate your image:</h2>
-        <label className="btn btn--purple">
+        <label className="btn btn--purple" disabled={loading}>
           Choose file
           <input type="file" name="image" accept="image/*" className="hidden" />
         </label>
@@ -126,9 +123,9 @@ export function App(props) {
           {loading ? "Uploading..." : "Upload"}
         </button>
       </form>
-      <div className={imgPath ? "sm:flex" : "hidden"}>
+      <div className={inURL ? "sm:flex" : "hidden"}>
         <div className="sm:w-1/2 w-full">
-          <img src={imgPath} className="mx-auto" />
+          <img src={outURL || inURL} className="mx-auto" />
         </div>
         <form onSubmit={submitHandlerEdit} className="sm:w-1/2 p-3 w-full">
           <fieldset>
@@ -175,7 +172,7 @@ export function App(props) {
           </fieldset>
           <div className="flex">
             <fieldset>
-              Rotate🔄:
+              Rotate:
               <br />
               <input type="number" className="form-input" name="rotate" min="0" max="359" placeholder="0-359" />
             </fieldset>
@@ -192,7 +189,7 @@ export function App(props) {
             <input type="number" className="form-input" name="resize_y" min="0" max="4999" placeholder="height" />
           </fieldset>
           <button type="submit" className="btn btn--green" disabled={loading}>{loading ? "Transforming..." : "Transform"}</button>
-          <button onClick={downloadHandler} className="btn btn--purple" disabled={loading}>Download</button>
+          <button onClick={downloadHandler} className="btn btn--purple" disabled={!outURL || loading}>Download</button>
           <button onClick={clearHandler} className="btn btn--red" disabled={loading}>Clear</button>
         </form>
       </div>
