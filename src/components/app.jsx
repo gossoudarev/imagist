@@ -4,32 +4,48 @@ import React, { useState } from "react";
 export function App(props) {
   const [loading, setLoading] = useState(false);
   const [imgPath, setImgPath] = useState("");
+  const [name, setName] = useState(false);
+  const [inURL, setInURL] = useState(false);
+  const [outURL, setOutURL] = useState(false);
+  const max_file_size = 15 * 1024 * 1024;
 
   async function submitHandlerUpload(event) {
     event.preventDefault();
-    if (!event.target.elements.image.files[0]) return;
+    const file = event.target.elements.image.files[0];
+    console.log(file);
+    setName(file.name);
+    if (!file) return;
+    if (file.size >= max_file_size) {
+      alert('Too large file!');
+      return;
+    }
     setLoading(true);
+    const blob = new Blob([file]);
+    const reader = new FileReader();
+    reader.readAsDataURL(blob);
+    reader.onload = async () => {
+      const request = {
+        operation: 'upload',
+        name: file.name,
+        file: reader.result
+      };
 
-    const imageData = new FormData();
-    imageData.append("image", event.target.elements.image.files[0]);
-
-    const response = await fetch("api/upload", {
-      method: "post",
-      body: imageData,
-    });
-    const { path } = await response.json();
-    setImgPath(path);
-    setLoading(false);
-
-    props.ws.emit("path", path);
-
-    props.ws.on("path", (path) => {
-      setImgPath(path);
+      let response = await fetch('https://ewo3spohhk.execute-api.us-east-2.amazonaws.com/default/Imagist', {
+        method: 'POST',
+        body: JSON.stringify(request)
+      });
+      response = await response.json();
+      if (response.success) {
+        setInURL(response.inURL);
+        setImgPath(inURL);
+      } else {
+        alert(response.error);
+      }
       setLoading(false);
-    });
+    };
   }
 
-  function submitHandlerEdit(event) {
+  async function submitHandlerEdit(event) {
     event.preventDefault();
     setLoading(true);
     const {
@@ -46,7 +62,9 @@ export function App(props) {
       posterize,
       pixelate
     } = event.target.elements;
-    props.ws.emit("transform", {
+    const request = {
+      operation: 'transform',
+      name,
       colors: colors.value,
       flip_h: flip_h.checked,
       flip_v: flip_v.checked,
@@ -59,7 +77,21 @@ export function App(props) {
       blur: parseInt(blur.value),
       posterize: parseInt(posterize.value),
       pixelate: parseInt(pixelate.value)
+    };
+
+    let response = await fetch('https://ewo3spohhk.execute-api.us-east-2.amazonaws.com/default/Imagist', {
+      method: 'POST',
+      body: JSON.stringify(request)
     });
+
+    response = await response.json();
+    if (response.sucsess) {
+      setOutURL(response.outURL);
+      setImgPath(outURL);
+    } else {
+      alert(response.error);
+    }
+    setLoading(false);
   }
 
   async function downloadHandler(event) {
@@ -75,7 +107,6 @@ export function App(props) {
 
   function clearHandler(event) {
     event.preventDefault();
-    props.ws.emit("clear");
     setImgPath("");
   }
 
