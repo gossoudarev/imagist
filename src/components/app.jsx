@@ -6,14 +6,14 @@ export function App(props) {
   const [filename, setFilename] = useState(false);
   const [inURL, setInURL] = useState(false);
   const [outURL, setOutURL] = useState(false);
-  const max_file_size = 15 * 1024 * 1024;
+  const maxFileSize = 15 * 1024 * 1024;
 
   async function submitHandlerUpload(event) {
     event.preventDefault();
     const file = event.target.elements.image.files[0];
     setFilename(file.name);
     if (!file) return;
-    if (file.size >= max_file_size) {
+    if (file.size >= maxFileSize) {
       alert('Too large file!');
       return;
     }
@@ -45,37 +45,27 @@ export function App(props) {
   async function submitHandlerEdit(event) {
     event.preventDefault();
     setLoading(true);
+    setOutURL(false);
     const {
-      colors,
       flip_h,
       flip_v,
       rotate,
       bg,
       resize_x,
       resize_y,
-      brightness,
-      contrast,
-      blur,
-      posterize,
-      pixelate
     } = event.target.elements;
     const request = {
       operation: 'transform',
       name: filename,
-      colors: colors.value,
-      flip_h: flip_h.checked,
-      flip_v: flip_v.checked,
-      rotate: parseInt(rotate.value),
-      bg: parseInt(bg.value.slice(1) + 'ff', 16),
-      resize_x: parseInt(resize_x.value),
-      resize_y: parseInt(resize_y.value),
-      brightness: parseInt(brightness.value) / 100,
-      contrast: parseInt(contrast.value) / 100,
-      blur: parseInt(blur.value),
-      posterize: parseInt(posterize.value),
-      pixelate: parseInt(pixelate.value)
+      actions: {
+        flip_h: flip_h.checked,
+        flip_v: flip_v.checked,
+        rotate: parseInt(rotate.value),
+        bg: bg.value,
+        resize_x: parseInt(resize_x.value),
+        resize_y: parseInt(resize_y.value),
+      }
     };
-    console.log(request);
 
     let response = await fetch('https://ewo3spohhk.execute-api.us-east-2.amazonaws.com/default/Imagist', {
       method: 'POST',
@@ -115,7 +105,7 @@ export function App(props) {
       >
         <h1 className="text-2xl sm:text-5xl mt-5">Wellcome to Imagist!</h1>
         <h2 className="text-lg sm:text-3xl my-2">Let's manipulate your image:</h2>
-        <label className="btn btn--purple" disabled={loading}>
+        <label className="inline-block btn btn--purple" disabled={loading}>
           Choose file
           <input type="file" name="image" accept="image/*" className="hidden" />
         </label>
@@ -128,36 +118,6 @@ export function App(props) {
           <img src={outURL || inURL} className="mx-auto" />
         </div>
         <form onSubmit={submitHandlerEdit} className="sm:w-1/2 p-3 w-full">
-          <fieldset>
-            Colors:
-            <br />
-            <label>
-              <input type="radio" className="hidden" name="colors" value="invert" />
-              <span className="hint">Invert</span>
-            </label>
-            <label>
-              <input type="radio" className="hidden" name="colors" value="greyscale" />
-              <span className="hint">Greyscale</span>
-            </label>
-            <label>
-              <input type="radio" className="hidden" name="colors" value="sepia" />
-              <span className="hint">Sepia</span>
-            </label>
-            <label>
-              <input type="radio" className="hidden" name="colors" value="" />
-              <span className="hint">None</span>
-            </label>
-            <br />
-            <input type="number" className="form-input" name="brightness" min="-100" max="100" placeholder="brightness" />
-            <input type="number" className="form-input" name="contrast" min="-100" max="100" placeholder="contrast" />
-          </fieldset>
-          <fieldset>
-            Effects:
-            <br />
-            <input type="number" className="form-input" name="blur" min="0" max="99" placeholder="blur" />
-            <input type="number" className="form-input" name="posterize" min="0" max="29" placeholder="posterize" />
-            <input type="number" className="form-input" name="pixelate" min="0" max="99" placeholder="pixelate" />
-          </fieldset>
           <fieldset>
             Flip:
             <br />
