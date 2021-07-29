@@ -16,7 +16,8 @@ export function App(props) {
       alert('Too large file!');
       return;
     }
-    if (file.type !== 'image/png' || file.type !== 'image/jpeg') {
+    console.log(file.type, file.type !== 'image/png' || file.type !== 'image/jpeg');
+    if (file.type !== 'image/png' && file.type !== 'image/jpeg') {
       alert('Please choose png or jpeg image!');
       return;
     }
