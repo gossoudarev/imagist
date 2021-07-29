@@ -11,12 +11,17 @@ export function App(props) {
   async function submitHandlerUpload(event) {
     event.preventDefault();
     const file = event.target.elements.image.files[0];
-    setFilename(file.name);
     if (!file) return;
     if (file.size >= maxFileSize) {
       alert('Too large file!');
       return;
     }
+    if (file.type !== 'image/png' || file.type !== 'image/jpeg') {
+      alert('Please choose png or jpeg image!');
+      return;
+    }
+    console.log(file.type);
+    setFilename(file.name);
     setLoading(true);
     const blob = new Blob([file]);
     const reader = new FileReader();
